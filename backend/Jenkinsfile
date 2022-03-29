@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+	}
+    
+    stages {
+        stage('Make some actions depending on ENV') {
+            steps {
+                script {
+                    if (params.ENV == "TEST") {
+                        sh 'echo "This id TEST env"'
+                    } elif (params.ENV == "PROD") {
+                        sh 'echo "This id PROD env"'
+                    }
+                }
+            }
+        }
+        stage ('gradle clean') {
+            steps {
+                 gradlew('clean')
+            }
+        }
+        stage ('gradle test') {
+            steps {
+                gradlew('test')
+            }
+        }
+        stage('sonarqube code analysis') {
+            steps {
+               gradlew('sonarqube')
+            }
+        }
+        stage('Build docker image') {
+            steps {
+                sh 'docker build --file Dockerfile -t 192.168.15.166:80/be:v$BUILD_NUMBER backend/'
+            }
+        }
+        stage('Login to DockerHub') {
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+        stage('Push docker image to registry') {
+            steps {
+                sh 'docker push 192.168.15.166:80/be:v$BUILD_NUMBER'
+            }
+        }
+        stage('Update deployment image') {
+            steps {
+                sh 'sed -i "s/image: localhost:80\\/be:v1.0.0/image: 192.168.15.166:80\\/be:v$BUILD_NUMBER/g"
+                k8s/backend/deployment.yaml'
+                sh 'cat ../k8s/backend/deployment.yaml'
+            }
+        }
+        stage('Update app in k8s') {
+            steps {
+                sh 'kubectl apply -f ../k8s/backend/'
+            }
+        }
+    }
+    
+    post {
+		always {
+			sh 'docker logout'
+		}
+	}
+}

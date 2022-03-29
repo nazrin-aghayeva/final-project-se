@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ui
+  namespace: phonebook
+spec:
+  selector:
+    app: frontend
+    env: test
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080

@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Handling Form Submission</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+        }
+    </style>
+
+</head>
+<body>
+<h1>host name address is : </h1>
+<h1 th:text="${hostname}"></h1>
+<h1>Form</h1>
+<table>
+    <thead>
+    <tr style="padding: 10px">
+        <th> User id</th>
+        <th> Name</th>
+        <th> Phone</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${users.isEmpty()}">
+        <td colspan="2"> No Users Available</td>
+    </tr>
+    <tr th:each="user : ${users}">
+        <td><span th:text="${user.userId}"> User id </span></td>
+        <td><span th:text="${user.name}"> Name </span></td>
+        <td><span th:text="${user.phone}"> Phone </span></td>
+    </tr>
+    </tbody>
+</table>
+
+<h1>Add New user</h1>
+<form action="#" th:action="@{/user/add}" th:object="${userReq}" th:method="post">
+    <p>Phone: <input type="text" th:field="*{name}"/></p>
+    <p>Name: <input type="text" th:field="*{phone}"/></p>
+    <p><input type="submit" value="Submit"/> <input type="reset" value="Reset"/></p>
+</form>
+</body>
+</html>

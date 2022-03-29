@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+	}
+    
+    stages {
+        stage('Make some actions depending on ENV') {
+            steps {
+                script {
+                    if (params.ENV == "TEST") {
+                        sh 'echo "This id TEST env"'
+                    } elif (params.ENV == "PROD") {
+                        sh 'echo "This id PROD env"'
+                    }
+                }
+            }
+        }
+        stage('Build docker image') {
+            steps {
+                sh 'docker build --file frontend/Dockerfile -t 192.168.15.165:8080/ui:v$BUILD_NUMBER frontend/'
+            }
+        }
+        stage('Login to DockerHub') {
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+        stage('Push docker image to registry') {
+            steps {
+                sh 'docker push 192.168.15.165:8080/ui:v$BUILD_NUMBER'
+            }
+        }
+        stage('Update deployment image') {
+            steps {
+                sh 'sed -i "s/image: localhost:8080\\/ui:v1.0.0/image: 192.168.15.165:8080\\/ui:v$BUILD_NUMBER/g"
+                k8s/frontend/deployment.yaml'
+                sh 'cat ../k8s/frontend/deployment.yaml'
+            }
+        }
+        stage('Update app in k8s') {
+            steps {
+                sh 'kubectl apply -f ../k8s/frontend/'
+            }
+        }
+    }
+    
+    post {
+		always {
+			sh 'docker logout'
+		}
+	}
+}

@@ -1,0 +1,4 @@
+FROM mysql
+EXPOSE 3306
+ENV MYSQL_ROOT_PASSWORD=my-secret-pw
+ENV MYSQL_DATABASE=phonebook_db

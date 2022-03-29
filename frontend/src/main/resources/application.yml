@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: /phonebook-frontend
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 20000
+        readTimeout: 120000
+        loggerLevel: full
+        decode404: false
+
+phonebook-api: http://localhost:80
+

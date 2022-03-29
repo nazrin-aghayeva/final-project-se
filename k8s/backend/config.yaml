@@ -1,0 +1,8 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: app-config
+  namespace: phonebook
+data:
+  frontend-url: localhost:8080
+  database-url: jdbc:mysql://localhost:3306/phonebook_db
